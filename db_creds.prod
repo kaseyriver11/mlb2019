@@ -1,0 +1,8 @@
+{
+    "dialect": "postgresql",
+    "user": "...",
+    "password": "...",
+    "host": "mlb2019.cvsp9ebtej6h.us-east-2.rds.amazonaws.com",
+    "port": "5432",
+    "dbname": "mlb2019"
+}
