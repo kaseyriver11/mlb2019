@@ -48,3 +48,24 @@ conn.execute("""
     GRANT SELECT ON team_names TO chenrocky;
 """)
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- Add the 538 Daily Games Table
+conn.execute("""
+    CREATE TABLE games_538(
+    id text PRIMARY KEY,
+    a_team_name text,
+    a_starting_pitcher text,
+    a_team_rating integer,
+    a_starting_pitcher_adjustment integer,
+    a_travel_adjustment integer,
+    a_pregame_rating integer,
+    a_chance_winning decimal,
+    h_team_name text,
+    h_starting_pitcher text,
+    h_team_rating integer,
+    h_starting_pitcher_adjustment integer,
+    h_travel_adjustment integer,
+    h_pregame_rating integer,
+    h_chance_winning decimal)
+""")
