@@ -54,6 +54,8 @@ conn.execute("""
 conn.execute("""
     CREATE TABLE games_538(
     id text PRIMARY KEY,
+    date date, 
+    game_time time, 
     a_team_name text,
     a_starting_pitcher text,
     a_team_rating integer,
