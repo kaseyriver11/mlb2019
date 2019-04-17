@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import datetime as dt
+from datetime import datetime
 import json
 import sqlalchemy
 
@@ -18,18 +19,29 @@ soup = BeautifulSoup(r.text, 'lxml')
 # What is today?
 date = soup.find_all('span', {'class': 'day long'})
 today = dt.datetime.today().strftime('%A, %B %d')
-today2 = dt.datetime.today().strftime('%m_%d_%Y_')
+today2 = dt.datetime.today().strftime('%Y_%m_%d_')
 days = [item.text for item in date if item.text == today]
 
+# function to convert 538 game time formats to python datetime time
+def convert_time(x):
+    if len(x) > 7:
+        in_time = datetime.strptime(x.replace(".",""), "%I:%M %p").time()
+    else:
+        in_time = datetime.strptime(x.replace(".",""), "%I %p").time()
+    return in_time
+
+# ----- Game Time
+game_time = soup.find_all('span', {'class': 'time'})
+game_time = [convert_time(item.text) if len(item.text.split()) == 2 else convert_time(' '.join(item.text.split()[0:2])) for item in game_time for _ in range(2)]
 # ----- Team Name
 team_name = soup.find_all('span', {'class': 'team-name short'})
 team_name = [item.text for item in team_name]
 # ----- Starting pitcher
-starting_pitcher = soup.find_all('span', {'class': 'pitcher-name'})
-starting_pitcher = [item.text for item in starting_pitcher]
+starting_pitcher = soup.find_all('img', alt = True)
+starting_pitcher = [item['alt'] for item in starting_pitcher][32::2]
 # ----- Team Rating
 team_rating = soup.find_all('td', {'class': 'td number td-number rating'})
-team_rating = [item.text for item in team_rating]
+team_rating = [int(item.text) for item in team_rating]
 # ----- Starting Pitcher Adjustment
 spa = soup.find_all('td', {'class': 'td number td-number pitcher-adj'})
 starting_pitcher_adjustment = [int(item.text) if item.text[0] != '–' else int(item.text[1:])*-1 for item in spa]
@@ -44,6 +56,7 @@ chance_winning = soup.find_all('td', {'class': 'td number td-number win-prob'})
 chance_winning = [float(item.text[:-1])/100 for item in chance_winning]
 
 df = pd.DataFrame()
+df['game_time'] = game_time[0:len(days)*2:2]
 df['a_team_name'] = team_name[0:len(days)*2:2]
 df['a_starting_pitcher'] = starting_pitcher[0:len(days)*2:2]
 df['a_team_rating'] = team_rating[0:len(days)*2:2]
@@ -59,7 +72,6 @@ df['h_travel_adjustment'] = travel_adjustment[1:(len(days)*2+1):2]
 df['h_pregame_rating'] = pregame_rating[1:(len(days)*2+1):2]
 df['h_chance_winning'] = chance_winning[1:(len(days)*2+1):2]
 df.insert(0, 'id', df.apply(lambda x: today2 + x['a_team_name'] + '_' + x['h_team_name'], axis=1))
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----- Setup credentials
