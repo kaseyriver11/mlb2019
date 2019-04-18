@@ -1,0 +1,74 @@
+Database Ideas
+--------------
+
+Table : games
+-------------
+id : text
+	id of the game of the form:
+	X_AWAY_HOME_HOUR
+		X : days since 3/28/2019
+		AWAY : away code
+		HOME : home code
+		HOUR : hour the same starts
+
+sport : text
+	'MLB', 'NBA', etc.
+
+date : datetime.date
+	DDMMYYYY
+
+game_time : datetime.time
+	HH:MM
+
+
+Table : mlb_538
+---------------
+id : text
+
+a_starting_pitcher : text
+a_team_rating : int
+a_starting_pitcher_adjustment : int
+a_travel_adjustment : int
+a_pregame_rating : int
+a_chance_winning : float
+h_starting_pitcher : text
+h_team_rating : int
+h_starting_pitcher_adjustment :int
+h_travel_adjustment : int
+h_pregame_rating : int
+h_chance_winning : float
+
+Table : bets
+------------
+id : text
+
+amount : int
+	The amount of the bet
+
+team : text
+	'H' or 'A'
+
+odds : int
+	The odds on the team bet on
+
+
+Table : outcome
+---------------
+id : text
+
+outcome : int
+	The amount of money gained or lost
+
+
+
+
+
+
+
+
+
+
+
+
+
+
