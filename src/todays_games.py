@@ -34,8 +34,8 @@ game_time = [convert_time(item.text) if len(item.text.split()) == 2 else
 team_name = soup.find_all('span', {'class': 'team-name short'})
 team_name = [item.text for item in team_name]
 # ----- Starting pitcher
-starting_pitcher = soup.find_all('span', {'class': 'pitcher-name'})
-starting_pitcher = [item.text for item in starting_pitcher]
+starting_pitcher = soup.find_all('', {'class': 'pitcher-img js-pitcher-img no-pitcher-img'})
+starting_pitcher = [item['alt'] for item in starting_pitcher]
 # ----- Team Rating
 team_rating = soup.find_all('td', {'class': 'td number td-number rating'})
 team_rating = [int(item.text) for item in team_rating]
