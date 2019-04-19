@@ -1,110 +1,110 @@
 
 import requests
 from bs4 import BeautifulSoup
-import pandas as pd
-import datetime as dt
-import json
-import sqlalchemy
+from pandas import DataFrame
+
+import sys
+sys.path.append('')
+
+try:
+    from src.functions import *
+except ModuleNotFoundError:
+    raise
 
 
-# function to convert 538 game time formats to python datetime time
-def convert_time(x):
-    if len(x) > 7:
-        in_time = dt.datetime.strptime(x.replace(".", ""), "%I:%M %p").time()
-    else:
-        in_time = dt.datetime.strptime(x.replace(".", ""), "%I %p").time()
-    return in_time
+def mlb_games(rows):
+    new_rows = []
+    for i, row in enumerate(rows):
+        # ----- Only look at completed games
+        if len(row.find_all('', {'data-game-status': 'upcoming'})) > 0:
+            # ----- If there is a game time, it is the first row of 2.
+            gt = row.find('span', {'class': 'time'})
+            if gt:
+                # ----- Is the game today?
+                date = row.find('', {'class': 'day short'})
+                if short_date_to_datetime(date, today) == today:
+                    game_time = convert_time(gt.text)
+                    # ----- Away Team
+                    away = list()
+                    away.append(row.find('span', {'class': 'team-name short'}).text)
+                    away.append(row.find('', {'class': 'pitcher-img js-pitcher-img no-pitcher-img'})['alt'])
+                    away.append(int(row.find('td', {'class': 'td number td-number rating'}).text))
+                    away.append(make_int(row.find('td', {'class': 'td number td-number pitcher-adj'})))
+                    away.append(make_int(row.find('td', {'class': 'td number td-number travel-adj'})))
+                    away.append(int(row.find('td', {'class': 'td number td-number rating-adj'}).text[1:]))
+                    away.append(float(row.find('td', {'class': 'td number td-number win-prob'}).text[:-1])/100)
+                    # ----- Home Team
+                    r2 = rows[i+1]
+                    home = list()
+                    home.append(r2.find('span', {'class': 'team-name short'}).text)
+                    home.append(r2.find('', {'class': 'pitcher-img js-pitcher-img no-pitcher-img'})['alt'])
+                    home.append(int(r2.find('td', {'class': 'td number td-number rating'}).text))
+                    home.append(make_int(r2.find('td', {'class': 'td number td-number pitcher-adj'})))
+                    home.append(make_int(r2.find('td', {'class': 'td number td-number travel-adj'})))
+                    home.append(int(r2.find('td', {'class': 'td number td-number rating-adj'}).text[1:]))
+                    home.append(float(r2.find('td', {'class': 'td number td-number win-prob'}).text[:-1])/100)
+
+                    game_id = str(day_id) + "_" + away[0] + "_" + home[0] + "_" + str(game_time.hour)
+
+                    new_rows.append([game_id, today, game_time] + away + home)
+
+    return DataFrame(new_rows,
+                     columns=['id', 'date', 'game_time',
+                              'away', 'a_starting_pitcher', 'a_team_rating', 'a_starting_pitcher_adjustment',
+                              'a_travel_adjustment', 'a_pregame_rating', 'a_chance_winning',
+                              'home', 'h_starting_pitcher', 'h_team_rating', 'h_starting_pitcher_adjustment',
+                              'h_travel_adjustment', 'h_pregame_rating', 'h_chance_winning'])
 
 
-url = "https://projects.fivethirtyeight.com/2019-mlb-predictions/games/"
-r = requests.get(url)
-soup = BeautifulSoup(r.text, 'lxml')
+if __name__ == '__main__':
 
-# What is today?
-date = soup.find_all('span', {'class': 'day long'})
-today = dt.datetime.today().strftime('%A, %B %d')
-today2 = dt.datetime.today().strftime('%m_%d_%Y')
-days = [item.text for item in date if item.text == today]
+    # ----- Connect to the database
+    db = setup_db()
+    conn = db.connect()
 
-# ----- Game Time
-game_time = soup.find_all('span', {'class': 'time'})
-game_time = [convert_time(item.text) if len(item.text.split()) == 2 else
-             convert_time(' '.join(item.text.split()[0:2])) for item in game_time for _ in range(2)]
-# ----- Team Name
-team_name = soup.find_all('span', {'class': 'team-name short'})
-team_name = [item.text for item in team_name]
-# ----- Starting pitcher
-starting_pitcher = soup.find_all('', {'class': 'pitcher-img js-pitcher-img no-pitcher-img'})
-starting_pitcher = [item['alt'] for item in starting_pitcher]
-# ----- Team Rating
-team_rating = soup.find_all('td', {'class': 'td number td-number rating'})
-team_rating = [int(item.text) for item in team_rating]
-# ----- Starting Pitcher Adjustment
-spa = soup.find_all('td', {'class': 'td number td-number pitcher-adj'})
-starting_pitcher_adjustment = [int(item.text) if item.text[0] != '–' else int(item.text[1:])*-1 for item in spa]
-# ----- Travel Adjustment
-travel_adjustment = soup.find_all('td', {'class': 'td number td-number travel-adj'})
-travel_adjustment = [int(item.text) if item.text[0] != '–' else int(item.text[1:])*-1 for item in travel_adjustment]
-# ----- Pregame Rating
-pregame_rating = soup.find_all('td', {'class': 'td number td-number rating-adj'})
-pregame_rating = [int(item.text[1:]) for item in pregame_rating]
-# ----- Chance of Winning
-chance_winning = soup.find_all('td', {'class': 'td number td-number win-prob'})
-chance_winning = [float(item.text[:-1])/100 for item in chance_winning]
+    # ---- Make the soup
+    url = "https://projects.fivethirtyeight.com/2019-mlb-predictions/games/"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'lxml')
 
-df = pd.DataFrame()
-df['date'] = [dt.date.today()]*len(days)
-df['game_time'] = game_time[0:len(days)*2:2]
-df['a_team_name'] = team_name[0:len(days)*2:2]
-df['a_starting_pitcher'] = starting_pitcher[0:len(days)*2:2]
-df['a_team_rating'] = team_rating[0:len(days)*2:2]
-df['a_starting_pitcher_adjustment'] = starting_pitcher_adjustment[0:len(days)*2:2]
-df['a_travel_adjustment'] = travel_adjustment[0:len(days)*2:2]
-df['a_pregame_rating'] = pregame_rating[0:len(days)*2:2]
-df['a_chance_winning'] = chance_winning[0:len(days)*2:2]
-df['h_team_name'] = team_name[1:(len(days)*2+1):2]
-df['h_starting_pitcher'] = starting_pitcher[1:(len(days)*2+1):2]
-df['h_team_rating'] = team_rating[1:(len(days)*2+1):2]
-df['h_starting_pitcher_adjustment'] = starting_pitcher_adjustment[1:(len(days)*2+1):2]
-df['h_travel_adjustment'] = travel_adjustment[1:(len(days)*2+1):2]
-df['h_pregame_rating'] = pregame_rating[1:(len(days)*2+1):2]
-df['h_chance_winning'] = chance_winning[1:(len(days)*2+1):2]
-df.insert(0, 'id', df.apply(lambda x: today2 + "_" + x['a_team_name'] + '_' + x['h_team_name'], axis=1))
+    # ----- Find all rows in the soup, and grab the days games
+    soup_rows = soup.find_all('tr')
+    df = mlb_games(soup_rows)
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ----- Setup credentials
-with open('local/db_creds.prod', mode='rt') as f:
-    db_creds = json.load(f)
-# ----- Setup connection
-db = sqlalchemy.create_engine('{dialect}://{user}:{password}@{host}:{port}/{dbname}'.format(**db_creds))
-conn = db.connect()
+    # ----- STEP #1: Insert Games into the games table
+    if len(df) > 0:
+        names = ['id', 'sport', 'date', 'game_time', 'away', 'home']
+        columns = ",".join(names)
+        values = "VALUES({})".format(",".join(["%s" for _ in names]))
+        # ----- Create insert statement
+        insert_stmt = "INSERT INTO {} ({}) {}".format('games', columns, values)
 
-# ----- Grab any games from today already in the database
-query = '''
-        SELECT *
-        FROM games_538
-        WHERE date = %(id)s
-        '''
-# ----- Run query
-games = pd.read_sql(query, db, params={'id': dt.date.today()})
+        for new_game in df.iterrows():
+            value = [new_game[1].id, 'MLB', new_game[1].date, new_game[1].game_time, new_game[1].away, new_game[1].home]
+            # --- Check if line is already in Database
+            try:
+                conn.execute(insert_stmt, value)
+            except sqlalchemy.exc.IntegrityError:
+                'nothing'
 
-# ----- Are there any rows to add?
-if len(df) > 0:
-    df_columns = list(df)
-    # ----- Create (col1,col2,...)
-    columns = ",".join(df_columns)
-    # ----- Create VALUES('%s', '%s",...) one '%s' per column
-    values = "VALUES({})".format(",".join(["%s" for _ in df_columns]))
-    # ----- Create insert statement
-    insert_stmt = "INSERT INTO {} ({}) {}".format('games_538', columns, values)
-    # ----- Create update statement
-    update_away = """UPDATE games_538 SET a_chance_winning = %s WHERE id = %s"""
-    update_home = """UPDATE games_538 SET h_chance_winning = %s WHERE id = %s"""
+    # ----- STEP #2: Insert Games in the mlb_538 table
+    mlb_data = df.drop(['away', 'home', 'date', 'game_time'], axis=1)
+    if len(df) > 0:
+        mlb_columns = mlb_data.columns
+        # ----- Create (col1,col2,...)
+        columns = ",".join(mlb_columns)
+        # ----- Create VALUES('%s', '%s",...) one '%s' per column
+        values = "VALUES({})".format(",".join(["%s" for _ in mlb_columns]))
+        # ----- Create insert statement
+        insert_stmt = "INSERT INTO {} ({}) {}".format('mlb_538', columns, values)
+        # ----- Create update statement
+        update_away = """UPDATE mlb_538 SET a_chance_winning = %s WHERE id = %s"""
+        update_home = """UPDATE mlb_538 SET h_chance_winning = %s WHERE id = %s"""
 
-    """Update mobile set price = %s where id = %s"""
-    for row in df.iterrows():
-        if row[1].id not in games.id.values:
-            conn.execute(insert_stmt, row[1])
-        else:
-            conn.execute(update_away, (row[1].a_chance_winning, row[1].id))
-            conn.execute(update_home, (row[1].h_chance_winning, row[1].id))
+        """Update mobile set price = %s where id = %s"""
+        for game in mlb_data.iterrows():
+            try:
+                conn.execute(insert_stmt, game[1])
+            except sqlalchemy.exc.IntegrityError:
+                conn.execute(update_away, (game[1].a_chance_winning, game[1].id))
+                conn.execute(update_home, (game[1].h_chance_winning, game[1].id))

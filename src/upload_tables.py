@@ -48,26 +48,57 @@ conn.execute("""
     GRANT SELECT ON team_names TO chenrocky;
 """)
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- GAMES
+conn.execute("""
+    CREATE TABLE games(
+    id text PRIMARY KEY,
+    sport text,
+    date date,
+    game_time time,
+    away text,
+    home text)
+""")
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- Add the 538 Daily Games Table
+# ----- mlb_538
 conn.execute("""
-    CREATE TABLE games_538(
+    CREATE TABLE mlb_538(
     id text PRIMARY KEY,
-    date date, 
-    game_time time, 
-    a_team_name text,
     a_starting_pitcher text,
     a_team_rating integer,
     a_starting_pitcher_adjustment integer,
     a_travel_adjustment integer,
     a_pregame_rating integer,
     a_chance_winning decimal,
-    h_team_name text,
     h_starting_pitcher text,
     h_team_rating integer,
     h_starting_pitcher_adjustment integer,
     h_travel_adjustment integer,
     h_pregame_rating integer,
     h_chance_winning decimal)
+""")
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- PLACED_BETS
+conn.execute("""
+    CREATE TABLE placed_bets(
+    id text PRIMARY KEY,
+    amount integer,
+    team text,
+    odds integer,
+    outcome)
+""")
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- GAME_OUTCOMES
+conn.execute("""
+    CREATE TABLE game_outcome(
+    id text PRIMARY KEY,
+    away text,
+    home text,
+    away_score integer,
+    home_score integer,
+    winner text)
 """)
