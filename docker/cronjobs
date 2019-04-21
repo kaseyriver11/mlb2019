@@ -1,2 +1,2 @@
-PATH=/usr/local/bin/
-* * * * * cd /Users/krjones/Documents/github/mlb2019 && docker-compose run mlb2019 bash -c "python3.6 src/test_script.py" >/tmp/stdout.log 2>/tmp/stderr.log
+PATH=/usr/bin/
+* * * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/test_script.py" >/tmp/stdout.log 2>/tmp/stderr.log
