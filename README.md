@@ -40,3 +40,24 @@ username: `kaseyriver11`
 [link](https://www.dataquest.io/blog/loading-data-into-postgres/)
 
 
+## On AWS Server
+
+Install docker & and start the daemon:
+
+```
+sudo apt install docker.io
+sudo apt  install docker-compose
+sudo systemctl start docker
+sudo docker-compose build
+```
+
+```
+sudo docker-compose run mlb2019 bash -c "python3.6 src/test_script.py"
+```
+
+Setup the cron jobs:
+```
+cat docker/cronjobs | crontab -
+```
+
+

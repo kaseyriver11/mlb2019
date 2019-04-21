@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import sqlalchemy
 
+
 def convert_time(x):
     x = x.replace(' Eastern', '')
     if len(x) > 7:

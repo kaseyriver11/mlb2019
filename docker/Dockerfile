@@ -11,7 +11,7 @@ RUN apt-get update \
     && python3.6 /tmp/get-pip.py \
     && apt-get remove -y curl \
     && apt autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
 
 COPY requirements.txt ./
 
