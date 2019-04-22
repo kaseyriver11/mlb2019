@@ -37,7 +37,7 @@ query = '''
 teams = pd.read_sql(query, db)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- Read the table names: fill in password
+# ----- Fill in password
 conn.execute("""
     CREATE USER chenrocky WITH PASSWORD '';
 """)
@@ -46,6 +46,20 @@ conn.execute("""
 conn.execute("""
     GRANT CONNECT ON DATABASE mlb2019 TO chenrocky;
     GRANT SELECT ON team_names TO chenrocky;
+""")
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- Create an ubuntu user
+conn.execute("""
+    CREATE USER ubuntu WITH PASSWORD 'IAA2017';
+""")
+
+# ----- Give ubuntu Access
+conn.execute("""
+    GRANT CONNECT ON DATABASE mlb2019 TO ubuntu;
+    GRANT USAGE ON SCHEMA public TO ubuntu;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ubuntu;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ubuntu;
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -102,3 +116,12 @@ conn.execute("""
     home_score integer,
     winner text)
 """)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- GAME_OUTCOMES
+query = """
+    SELECT *
+    FROM mlb_538
+    """
+pd.read_sql(query, db)
