@@ -9,7 +9,7 @@ Project Team:
 
 
 ## Requirements
-This project relies on a docker container. Locally, this container makes sure all team members are using the same packages. At the server level, I am not sure what it will do yet. 
+This project relies on a docker container. Locally, this container makes sure all team members are using the same packages. At the server level, it ensures the python scripts run as expected. 
 
 ### Create the container
 
@@ -51,13 +51,17 @@ sudo systemctl start docker
 sudo docker-compose build
 ```
 
+Test Script:
 ```
 sudo docker-compose run mlb2019 bash -c "python3.6 src/test_script.py"
 ```
 
 Setup the cron jobs:
 ```
+cd mlb2019/
 cat docker/cronjobs | crontab -
 ```
+
+Make sure there is a `local/db_preds` file with correct username and password. 
 
 
