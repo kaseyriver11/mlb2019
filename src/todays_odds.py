@@ -50,7 +50,7 @@ def soup_url(type_of_line, tdate):
     url_addon = web_url[type_of_line]
 
     url = 'https://classic.sportsbookreview.com/betting-odds/mlb-baseball/' + url_addon + '?date=' + tdate
-    raw_data = requests.get(url)
+    raw_data = requests.get(url, verify=False)
     soup_big = BeautifulSoup(raw_data.text, 'html.parser')
     try:
         soup_final = soup_big.find_all('div', id='OddsGridModule_3')[0]
@@ -151,7 +151,7 @@ def get_line_odds(soup_flavor):
                           [i].find_all('div')[2].get_text().split())
         hyphen_h = info_h.find('-')
         # paren_H = info_h.find("(")
-        team_h = info_h[hyphen_h - 1]
+        team_h = info_h[:(hyphen_h - 1)]
         # pitcher_H = info_h[(hyphen_H + 2):(paren_h - 1)]
         # hand_H = info_h[(paren_h + 1):-1]
 
