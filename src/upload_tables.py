@@ -12,7 +12,7 @@ db = sqlalchemy.create_engine('{dialect}://{user}:{password}@{host}:{port}/{dbna
 conn = db.connect()
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- Add a table to the database
+# ----- Add the team names table
 conn.execute("""
     CREATE TABLE team_names(
     id integer PRIMARY KEY,
@@ -22,22 +22,12 @@ conn.execute("""
     short_name text)
 """)
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ----- Read the table names
 tn = pd.read_csv("data/team_names.csv")
 for row in tn.iterrows():
     conn.execute("INSERT INTO team_names VALUES (%s, %s, %s, %s, %s)", row[1])
 
-# ---- Did it work?
-query = '''
-        SELECT *
-        FROM team_names
-        '''
-# ----- Run query
-teams = pd.read_sql(query, db)
-
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- Fill in password
+# ----- Fill in password as needed
 conn.execute("""
     CREATE USER chenrocky WITH PASSWORD '';
 """)
@@ -45,7 +35,9 @@ conn.execute("""
 # ----- Give Rocky Access
 conn.execute("""
     GRANT CONNECT ON DATABASE mlb2019 TO chenrocky;
-    GRANT SELECT ON team_names TO chenrocky;
+    GRANT USAGE ON SCHEMA public TO chenrocky;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO chenrocky;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO chenrocky;
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -63,7 +55,7 @@ conn.execute("""
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- GAMES
+# ----- Create the GAMES table
 conn.execute("""
     CREATE TABLE games(
     id text PRIMARY KEY,
@@ -72,6 +64,16 @@ conn.execute("""
     game_time time,
     away text,
     home text)
+""")
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- Create the GAME_OUTCOMES table
+conn.execute("""
+    CREATE TABLE game_outcomes(
+    id text PRIMARY KEY,
+    away_score integer,
+    home_score integer,
+    winner text)
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -90,7 +92,7 @@ conn.execute("""
     h_starting_pitcher_adjustment integer,
     h_travel_adjustment integer,
     h_pregame_rating integer,
-    h_chance_winning decimal)
+    h_chance_winning float)
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -98,23 +100,21 @@ conn.execute("""
 conn.execute("""
     CREATE TABLE placed_bets(
     id text PRIMARY KEY,
-    amount integer,
-    team text,
-    odds integer,
-    outcome)
+    sports_book text,
+    bet_on text,
+    amount_bet integer,
+    odds_bet integer,
+    chance_to_win decimal,
+    to_win float)
 """)
 
-
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- GAME_OUTCOMES
+# ----- BET_OUTCOMES
 conn.execute("""
-    CREATE TABLE game_outcome(
+    CREATE TABLE bet_outcomes(
     id text PRIMARY KEY,
-    away text,
-    home text,
-    away_score integer,
-    home_score integer,
-    winner text)
+    amount_bet integer,
+    amount_won float)
 """)
 
 
@@ -123,14 +123,14 @@ conn.execute("""
 conn.execute("""
     CREATE TABLE sport_ids(
     id text PRIMARY KEY,
-    sports text)
+    sport text)
 """)
 
 sports = dict()
 sports['01'] = 'MLB'
 sports['02'] = 'NBA'
 
-names = ['id', 'sports']
+names = ['id', 'sport']
 columns = ",".join(names)
 values = "VALUES({})".format(",".join(["%s" for _ in names]))
 # ----- Create insert statement
@@ -143,7 +143,7 @@ for sport in sports:
         'nothing'
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----- GAME_OUTCOMES
+# ----- Test the code
 query = """
     SELECT *
     FROM mlb_538

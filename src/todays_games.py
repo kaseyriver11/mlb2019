@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     raise
 
 
-def mlb_games(rows):
+def mlb_538(rows):
     new_rows = []
     for i, row in enumerate(rows):
         # ----- Only look at completed games
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # ----- Find all rows in the soup, and grab the days games
     soup_rows = soup.find_all('tr')
-    df = mlb_games(soup_rows)
+    df = mlb_538(soup_rows)
 
     # ----- STEP #1: Insert Games into the games table
     if len(df) > 0:
