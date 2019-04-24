@@ -119,6 +119,30 @@ conn.execute("""
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# ----- Sport Table
+conn.execute("""
+    CREATE TABLE sport_ids(
+    id text PRIMARY KEY,
+    sports text)
+""")
+
+sports = dict()
+sports['01'] = 'MLB'
+sports['02'] = 'NBA'
+
+names = ['id', 'sports']
+columns = ",".join(names)
+values = "VALUES({})".format(",".join(["%s" for _ in names]))
+# ----- Create insert statement
+insert_stmt = "INSERT INTO {} ({}) {}".format('sport_ids', columns, values)
+for sport in sports:
+    value = [sport, sports[sport]]
+    try:
+        conn.execute(insert_stmt, value)
+    except sqlalchemy.exc.IntegrityError:
+        'nothing'
+
+# ----------------------------------------------------------------------------------------------------------------------
 # ----- GAME_OUTCOMES
 query = """
     SELECT *
