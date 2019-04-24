@@ -44,7 +44,7 @@ def mlb_games(rows):
                     home.append(int(r2.find('td', {'class': 'td number td-number rating-adj'}).text[1:]))
                     home.append(float(r2.find('td', {'class': 'td number td-number win-prob'}).text[:-1])/100)
 
-                    game_id = str(day_id) + "_" + away[0] + "_" + home[0] + "_" + str(game_time.hour)
+                    game_id = '01' + '_' + str(day_id) + "_" + away[0] + "_" + home[0] + "_" + str(game_time.hour)
 
                     new_rows.append([game_id, today, game_time] + away + home)
 
