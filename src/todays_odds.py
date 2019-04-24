@@ -8,8 +8,7 @@ Created on Sun Apr 21 13:29:46 2019
 import requests
 from bs4 import BeautifulSoup
 import time
-import pandas as pd
-from pandas import DataFrame
+from pandas import DataFrame, read_sql
 
 
 import sys
@@ -44,13 +43,13 @@ web_url = {
 }
 
 
-def soup_url(type_of_line, tdate):
+def soup_url(type_of_line):
     # get html code for odds based on desired line type and date
-
     url_addon = web_url[type_of_line]
 
-    url = 'https://classic.sportsbookreview.com/betting-odds/mlb-baseball/' + url_addon + '?date=' + tdate
-    raw_data = requests.get(url, verify=False)
+    t_date = str(today).replace('-', '')
+    url = 'https://classic.sportsbookreview.com/betting-odds/mlb-baseball/' + url_addon + '?date=' + t_date
+    raw_data = requests.get(url)
     soup_big = BeautifulSoup(raw_data.text, 'html.parser')
     try:
         soup_final = soup_big.find_all('div', id='OddsGridModule_3')[0]
@@ -73,54 +72,6 @@ def book_line(soup_flavor, book_id, line_id, homeaway):
     return line
 
 
-todays_date = str(today).replace('-', '')
-
-
-soup_ml, soup_rl, soup_tot, soup_1h_ml, soup_1h_rl, soup_1h_tot = None, None, None, None, None, None
-
-try:
-    soup_ml, time_ml = soup_url('ML', todays_date)
-    print("getting today's MoneyLine (1/6)")
-except requests.exceptions.SSLError:
-    print("couldn't get today's moneyline :(")
-
-try:
-    soup_rl, time_rl = soup_url('RL', todays_date)
-    print("getting today's RunLine (2/6)")
-except requests.exceptions.SSLError:
-    print("couldn't get today's runline :(")
-
-try:
-    soup_tot, time_tot = soup_url('total', todays_date)
-    print("getting today's totals (3/6)")
-except requests.exceptions.SSLError:
-    print("couldn't get today's totals :(")
-
-try:
-    soup_1h_ml, time_1h_ml = soup_url('1H', todays_date)
-    print("getting today's 1st-half MoneyLine (4/6)")
-except requests.exceptions.SSLError:
-    soup_1h_ml = ''
-    time_1h_ml = ''
-    print("couldn't get today's 1h ml :(")
-
-try:
-    soup_1h_rl, time_1h_rl = soup_url('1HRL', todays_date)
-    print("getting today's 1st-half RunLine (5/6)")
-except requests.exceptions.SSLError:
-    soup_1h_rl = ''
-    time_1h_rl = ''
-    print("couldn't get today's 1h rl :(")
-
-try:
-    soup_1h_tot, time_1h_tot = soup_url('1Htotal', todays_date)
-    print("getting today's 1st-half totals (6/6)")
-except requests.exceptions.SSLError:
-    soup_1h_tot = ''
-    time_1h_tot = ''
-    print("couldn't get today's 1h totals :(")
-
-
 def convert_time_sbr(x):
     in_time = x[:-1] + ' ' + x[-1:]
     in_time = dt.datetime.strptime(in_time.replace("p", "PM").replace("a", "AM"), "%I:%M %p").time()
@@ -128,32 +79,25 @@ def convert_time_sbr(x):
 
 
 def get_line_odds(soup_flavor):
-    
     number_of_games = len(soup_flavor.find_all('div', attrs={'class': 'el-div eventLine-rotation'}))
-    
+
     list_line_odds = []
-    
+
     for i in range(0, number_of_games):
-        print('getting game', str(i+1)+'/'+str(number_of_games))
-        
+        print('getting game', str(i + 1) + '/' + str(number_of_games))
+
         game_time = convert_time_sbr(soup_flavor.find_all('div', attrs={'class': 'el-div eventLine-time'})
                                      [i].get_text())
-        
+
         info_a = ' '.join(soup_flavor.find_all('div', attrs={'class': 'el-div eventLine-team'})
                           [i].find_all('div')[0].get_text().split())
         hyphen_a = info_a.find('-')
-        # paren_a = info_a.find("(")
         team_a = info_a[:hyphen_a - 1]
-        # pitcher_A = info_a[(hyphen_a + 2):(paren_a - 1)]
-        # hand_A = info_a[(paren_a + 1):-1]
-    
+
         info_h = ' '.join(soup_flavor.find_all('div', attrs={'class': 'el-div eventLine-team'})
                           [i].find_all('div')[2].get_text().split())
         hyphen_h = info_h.find('-')
-        # paren_H = info_h.find("(")
         team_h = info_h[:(hyphen_h - 1)]
-        # pitcher_H = info_h[(hyphen_H + 2):(paren_h - 1)]
-        # hand_H = info_h[(paren_h + 1):-1]
 
         game_line_odds = []
 
@@ -161,15 +105,11 @@ def get_line_odds(soup_flavor):
         game_line_odds.extend([team_a])
         game_line_odds.extend([team_h])
 
-        # print(str(game_time.hour))
-        # print(team_a)
-        # print(team_h)
-
         for book in bookID.values():
             a_line_odd = clean_odds(book_line(soup_flavor, book, i, 0)).split()
             h_line_odd = clean_odds(book_line(soup_flavor, book, i, 1)).split()
             if len(a_line_odd) == 0:
-                game_line_odds.extend([None, None, None, None])        
+                game_line_odds.extend([None, None, None, None])
             elif len(a_line_odd) == 1:
                 game_line_odds.extend([0, float(a_line_odd[0]), 0, float(h_line_odd[0])])
             else:
@@ -177,9 +117,9 @@ def get_line_odds(soup_flavor):
                                        float(a_line_odd[1]),
                                        float(h_line_odd[0]),
                                        float(h_line_odd[1])])
-    
+
         list_line_odds.append(game_line_odds)
-    
+
     df_line_odds = DataFrame.from_records(list_line_odds)
     df_line_odds.columns = ["game_hour",
                             "team_away",
@@ -227,27 +167,52 @@ def get_line_odds(soup_flavor):
     return df_line_odds
 
 
-df_line_odds_ml = get_line_odds(soup_ml)
-df_line_odds_rl = get_line_odds(soup_rl)
-df_line_odds_tot = get_line_odds(soup_tot)
-df_line_odds_1h_ml = get_line_odds(soup_1h_ml)
-df_line_odds_1h_rl = get_line_odds(soup_1h_rl)
-df_line_odds_1h_tot = get_line_odds(soup_1h_tot)
-
-df_line_odds_ml.insert(0, "Odds_Type", "Money Line Full")
-df_line_odds_rl.insert(0, "Odds_Type", "Run Line Full")
-df_line_odds_tot.insert(0, "Odds_Type", "Totals Full")
-df_line_odds_1h_ml.insert(0, "Odds_Type", "Money Line Half")
-df_line_odds_1h_rl.insert(0, "Odds_Type", "Run Line Half")
-df_line_odds_1h_tot.insert(0, "Odds_Type", "Totals Half")
-
-df_line_odds_ALL = pd.concat([df_line_odds_ml,
-                              df_line_odds_rl,
-                              df_line_odds_tot,
-                              df_line_odds_1h_ml,
-                              df_line_odds_1h_rl,
-                              df_line_odds_1h_tot])
+def add_lines(df_series):
+    return [item + 100 if item >= 0 else 100/(abs(item)/100) + 100 for item in df_series]
 
 
-print(df_line_odds_ALL.intert_line_a.dtype)
-print(df_line_odds_ALL.herita_line_a.dtype)
+if __name__ == '__main__':
+    soup_ml = None
+    try:
+        soup_ml, time_ml = soup_url('ML')
+        print("getting today's MoneyLine (1/6)")
+    except requests.exceptions.SSLError:
+        print("couldn't get today's moneyline :(")
+
+    df_ml = get_line_odds(soup_ml)
+    df_ml.insert(0, "Odds_Type", "Money Line Full")
+    df_ml.insert(0, "id", df_ml.apply(lambda x: '01' + '_' + str(day_id) + "_" + x.team_away +
+                                                "_" + x.team_home + "_" + str(x.game_hour), axis=1))
+
+    lines = df_ml[['id', 'pinnac_odds_a', 'pinnac_odds_h']]
+    lines = lines.fillna(0)
+
+    # ----- Get today's game from the database
+    db = setup_db()
+    conn = db.connect()
+    query = '''
+            SELECT m.id, m.a_chance_winning, m.h_chance_winning
+            FROM games
+            INNER JOIN mlb_538 as m
+            ON games.id = m.id
+            WHERE date = %(date)s
+            '''
+    # ----- Run query
+    games = read_sql(query, db, params={'date': today})
+    lines = lines.merge(games, on='id')
+    lines['away_winnings'] = add_lines(lines['pinnac_odds_a'])
+    lines['home_winnings'] = add_lines(lines['pinnac_odds_h'])
+    lines['away_expected'] = lines['a_chance_winning'] * lines['away_winnings']
+    lines['home_expected'] = lines['h_chance_winning'] * lines['home_winnings']
+
+    # ----- Which games do we bet on?
+    home_bets = lines[lines['home_expected'] > 102]
+    away_bets = lines[lines['away_expected'] > 102]
+
+    # ----- Insert these into the bets database
+
+
+
+
+
+
