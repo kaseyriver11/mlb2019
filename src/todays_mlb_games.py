@@ -50,10 +50,10 @@ def mlb_538(rows):
 
     return DataFrame(new_rows,
                      columns=['id', 'date', 'game_time',
-                              'away', 'a_starting_pitcher', 'a_team_rating', 'a_starting_pitcher_adjustment',
-                              'a_travel_adjustment', 'a_pregame_rating', 'a_chance_winning',
-                              'home', 'h_starting_pitcher', 'h_team_rating', 'h_starting_pitcher_adjustment',
-                              'h_travel_adjustment', 'h_pregame_rating', 'h_chance_winning'])
+                              'away', 'away_starting_pitcher', 'away_team_rating', 'away_starting_pitcher_adjustment',
+                              'away_travel_adjustment', 'away_pregame_rating', 'away_chance_winning',
+                              'home', 'home_starting_pitcher', 'home_team_rating', 'home_starting_pitcher_adjustment',
+                              'home_travel_adjustment', 'home_pregame_rating', 'home_chance_winning'])
 
 
 if __name__ == '__main__':
@@ -98,13 +98,13 @@ if __name__ == '__main__':
         # ----- Create insert statement
         insert_stmt = "INSERT INTO {} ({}) {}".format('mlb_538', columns, values)
         # ----- Create update statement
-        update_away = """UPDATE mlb_538 SET a_chance_winning = %s WHERE id = %s"""
-        update_home = """UPDATE mlb_538 SET h_chance_winning = %s WHERE id = %s"""
+        update_away = """UPDATE mlb_538 SET away_chance_winning = %s WHERE id = %s"""
+        update_home = """UPDATE mlb_538 SET home_chance_winning = %s WHERE id = %s"""
 
         """Update mobile set price = %s where id = %s"""
         for game in mlb_data.iterrows():
             try:
                 conn.execute(insert_stmt, game[1])
             except sqlalchemy.exc.IntegrityError:
-                conn.execute(update_away, (game[1].a_chance_winning, game[1].id))
-                conn.execute(update_home, (game[1].h_chance_winning, game[1].id))
+                conn.execute(update_away, (game[1].away_chance_winning, game[1].id))
+                conn.execute(update_home, (game[1].home_chance_winning, game[1].id))

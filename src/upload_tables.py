@@ -81,18 +81,18 @@ conn.execute("""
 conn.execute("""
     CREATE TABLE mlb_538(
     id text PRIMARY KEY,
-    a_starting_pitcher text,
-    a_team_rating integer,
-    a_starting_pitcher_adjustment integer,
-    a_travel_adjustment integer,
-    a_pregame_rating integer,
-    a_chance_winning decimal,
-    h_starting_pitcher text,
-    h_team_rating integer,
-    h_starting_pitcher_adjustment integer,
-    h_travel_adjustment integer,
-    h_pregame_rating integer,
-    h_chance_winning float)
+    away_starting_pitcher text,
+    away_team_rating integer,
+    away_starting_pitcher_adjustment integer,
+    away_travel_adjustment integer,
+    away_pregame_rating integer,
+    away_chance_winning decimal,
+    home_starting_pitcher text,
+    home_team_rating integer,
+    home_starting_pitcher_adjustment integer,
+    home_travel_adjustment integer,
+    home_pregame_rating integer,
+    home_chance_winning float)
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -105,7 +105,8 @@ conn.execute("""
     amount_bet integer,
     odds_bet integer,
     chance_to_win decimal,
-    to_win float)
+    to_win float,
+    expected_winnings float)
 """)
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -148,4 +149,14 @@ query = """
     SELECT *
     FROM mlb_538
     """
-pd.read_sql(query, db)
+a = pd.read_sql(query, db)
+a
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----- Test the code
+query = """
+    SELECT *
+    FROM games
+    """
+b = pd.read_sql(query, db)
+b
