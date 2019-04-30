@@ -114,8 +114,8 @@ conn.execute("""
 conn.execute("""
     CREATE TABLE bet_outcomes(
     id text PRIMARY KEY,
-    amount_bet integer,
-    amount_won float)
+    amount_won float,
+    net_gain float)
 """)
 
 
@@ -156,7 +156,7 @@ a
 # ----- Test the code
 query = """
     SELECT *
-    FROM games
+    FROM bet_outcomes
     """
 b = pd.read_sql(query, db)
-b
+print(b.tail())

@@ -34,6 +34,12 @@ def setup_db():
     return db
 
 
+def make_id_from_dataframe(df, sport_id='01'):
+    ids = df.apply(lambda x: sport_id + '_' + str(day_id) + "_" + x.team_away +
+                             "_" + x.team_home + "_" + str(x.game_hour), axis=1)
+    return ids
+
+
 opening_day = dt.date(2019, 3, 28)
 day_id = (dt.date.today() - opening_day).days
 yesterday = dt.date.today() - dt.timedelta(days=1)

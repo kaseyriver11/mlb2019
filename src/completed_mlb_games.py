@@ -42,7 +42,7 @@ def create_results(rows):
                     h_score = int(rows[i + 1].find('td', {'data-game-status': 'completed'}).text)
 
                     # ----- Game ID
-                    game_id = str(day_id) + "_" + a_team + '_' + h_team + "_" + str(game_time.hour)
+                    game_id = '01' + "_" + str(day_id - 1) + "_" + a_team + '_' + h_team + "_" + str(game_time.hour)
 
                     new_rows.append([game_id, a_team, h_team, a_score, h_score, winner])
 
@@ -64,30 +64,53 @@ if __name__ == '__main__':
     results = create_results(rows=soup_rows)
 
     # ----- STEP #1: Insert Games into the database
+    game_outcomes = results[['id', 'away_score', 'home_score', 'winner']]
     if len(results) > 0:
-        df_columns = list(results)
+        df_columns = list(game_outcomes)
         # ----- Create (col1, col2, ...)
         columns = ",".join(df_columns)
         # ----- Create VALUES('%s', '%s",...) one '%s' per column
         values = "VALUES({})".format(",".join(["%s" for _ in df_columns]))
         # ----- Create insert statement
-        insert_stmt = "INSERT INTO {} ({}) {}".format('game_outcome', columns, values)
+        insert_stmt = "INSERT INTO {} ({}) {}".format('game_outcomes', columns, values)
 
-        for result in results.iterrows():
+        for game in game_outcomes.iterrows():
             # --- Check if line is already in Database
             try:
-                conn.execute(insert_stmt, result[1])
+                conn.execute(insert_stmt, game[1])
             except sqlalchemy.exc.IntegrityError:
-                'nothing'
+                pass
 
     # ----- STEP #2: Check if we made any bets on these games
     # ----- Grab any games from today already in the database
     query = '''
-            SELECT id
-            FROM games
+            SELECT pb.*
+            FROM games as g
+            INNER JOIN placed_bets as pb
+            ON g.id = pb.id
             WHERE date = %(date)s
             '''
     # ----- Run query
-    games = read_sql(query, db, params={'date': yesterday})
+    placed_bets = read_sql(query, db, params={'date': yesterday})
+    placed_bets = placed_bets.merge(results, on='id')
 
-    # TODO
+    # --- Outcome
+    placed_bets['outcome'] = placed_bets.apply(lambda x: x.bet_on == x.winner, axis=1)
+    # --- Amount One
+    placed_bets['amount_won'] = placed_bets.apply(lambda x: x.to_win if x.outcome else 0, axis=1)
+    placed_bets['net_gain'] = placed_bets['amount_won'] - placed_bets['amount_bet']
+
+    # ----- Place the outcomes of the bets in the database
+    outcomes = placed_bets[['id', 'amount_won', 'net_gain']]
+    names = ['id', 'amount_won', 'net_gain']
+    columns = ",".join(names)
+    values = "VALUES({})".format(",".join(["%s" for _ in names]))
+    insert_stmt = "INSERT INTO {} ({}) {}".format('bet_outcomes', columns, values)
+
+    # ----- Place Bets: Away
+    if outcomes.shape[0] > 0:
+        for game in outcomes.iterrows():
+            try:
+                conn.execute(insert_stmt, game[1])
+            except sqlalchemy.exc.IntegrityError:
+                pass
