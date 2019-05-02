@@ -239,3 +239,6 @@ if __name__ == '__main__':
                         insert_values = [game[1].id, game[1].home_sports_book, 'home', 100, game[1].home_odds,
                                          game[1].home_chance_winning, game[1].home_winnings, game[1].home_expected]
                         conn.execute(insert_stmt, insert_values)
+
+        else:
+            print('ERROR: no games were found.')

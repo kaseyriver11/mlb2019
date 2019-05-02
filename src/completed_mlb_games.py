@@ -78,8 +78,9 @@ if __name__ == '__main__':
             # --- Check if line is already in Database
             try:
                 conn.execute(insert_stmt, game[1])
-            except sqlalchemy.exc.IntegrityError:
-                pass
+            except sqlalchemy.exc.IntegrityError as e:
+                print('Game outcome error:')
+                print(e)
 
     # ----- STEP #2: Check if we made any bets on these games
     # ----- Grab any games from today already in the database
@@ -112,5 +113,6 @@ if __name__ == '__main__':
         for game in outcomes.iterrows():
             try:
                 conn.execute(insert_stmt, game[1])
-            except sqlalchemy.exc.IntegrityError:
-                pass
+            except sqlalchemy.exc.IntegrityError as e:
+                print('Placed bets error:')
+                print(e)

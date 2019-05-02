@@ -84,8 +84,10 @@ if __name__ == '__main__':
             # --- Check if line is already in Database
             try:
                 conn.execute(insert_stmt, value)
-            except sqlalchemy.exc.IntegrityError:
-                'nothing'
+            except sqlalchemy.exc.IntegrityError as e:
+               print(e)
+    else:
+        print('ERROR: no games were found')
 
     # ----- STEP #2: Insert Games in the mlb_538 table
     mlb_data = df.drop(['away', 'home', 'date', 'game_time'], axis=1)
