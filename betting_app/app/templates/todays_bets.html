@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+  <h1>Today's Bets</h1>
+  {% for bet in bets %}
+    {{ bet|safe }}
+  {% endfor %}
+{% endblock %}

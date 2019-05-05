@@ -1,0 +1,30 @@
+<link href="{{ url_for('static', filename='css/sb-admin-2.css') }}" rel="stylesheet">
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('todays_games') }}">Today's Games</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('todays_bets') }}">Today's Bets</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('recent_outcomes') }}">Recent Outcomes</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        {# application content needs to be provided in the app_content block #}
+        {% block app_content %}{% endblock %}
+    </div>
+{% endblock %}
