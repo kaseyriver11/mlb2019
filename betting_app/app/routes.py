@@ -1,14 +1,39 @@
 from flask import render_template
-from app import application, db, today, yesterday
+from app import application, db
 from pandas import read_sql
+import datetime as dt
 
-query = """
-    SELECT date, game_time, away, home
-    FROM games
-    WHERE date = %(date)s
-    """
-games = read_sql(query, db.engine, params={'date': today})
-games.columns = ['Date', 'Game Time', 'Away', 'Home']
+
+def make_dashboard():
+    q = """
+        SELECT *
+        FROM bet_outcomes as bo
+        INNER JOIN placed_bets as pb
+        on bo.id = pb.id
+        """
+    outcomes = read_sql(q, db.engine)
+
+    bets = outcomes.shape[0]
+    net = '$ ' + str(round(outcomes.net_gain.sum(), 2))
+    total_bet = outcomes.amount_bet.sum()
+    return_on_investment = str(round((outcomes.amount_bet.sum() + outcomes.net_gain.sum()) /
+                                     outcomes.amount_bet.sum(), 4) * 100) + "%"
+
+    return bets, net, total_bet, return_on_investment
+
+
+def make_games():
+    t = dt.date.today()
+
+    q = """
+        SELECT date, game_time, away, home
+        FROM games
+        WHERE date = %(date)s
+        """
+    games = read_sql(q, db.engine, params={'date': t})
+    games.columns = ['Date', 'Game Time', 'Away', 'Home']
+
+    return games
 
 
 query = """
@@ -18,6 +43,7 @@ query = """
     on g.id = pb.id
     WHERE g.date = %(date)s
     """
+today = dt.date.today()
 bets = read_sql(query, db.engine, params={'date': today})
 bets.columns = ['Away', 'Home', 'Bet On:', 'Odds', 'Win Percentage', 'To Win', 'Expected Winnings']
 
@@ -31,19 +57,26 @@ query = """
         on pb.id = bo.id
     WHERE g.date = %(date)s
     """
+yesterday = dt.date.today() - dt.timedelta(days=1)
 outcomes = read_sql(query, db.engine, params={'date': yesterday})
 outcomes.columns = ['Away', 'Home', 'Bet On', 'Amount Won', 'Net Gain']
+
 
 @application.route('/', methods=['GET'])
 @application.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html')
+    values = make_dashboard()
+    return render_template('index.html',
+                           bets=values[0],
+                           net=values[1],
+                           total_bet=values[2],
+                           roi=values[3])
 
 
 @application.route('/todays_games', methods=['GET'])
 def todays_games():
     return render_template('todays_games.html',
-                           games=[games.to_html(classes='data', index=False)])
+                           games=[make_games().to_html(classes='data', index=False)])
 
 
 @application.route('/todays_bets', methods=['GET'])
