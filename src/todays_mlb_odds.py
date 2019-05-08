@@ -49,10 +49,12 @@ def extract_sportsbookreview_soup(type_of_line='ML'):
     soup_final : bs4 element
 
     """
+    # ----- Create url with today's date and specified type of line
     url_addon = web_url[type_of_line]
-
     t_date = str(today).replace('-', '')
     url = 'https://classic.sportsbookreview.com/betting-odds/mlb-baseball/' + url_addon + '?date=' + t_date
+
+    # ----- Make soup for odds table
     raw_data = requests.get(url)
     soup_big = BeautifulSoup(raw_data.text, 'html.parser')
     try:
@@ -98,7 +100,7 @@ def convert_time_sbr(x):
 
 
 def get_line_odds(soup_flavor):
-    """ The the odds from each game in the soup"""
+    """ Get the odds from each game in the soup"""
     number_of_games = len(soup_flavor.find_all('div', attrs={'class': 'el-div eventLine-rotation'}))
     list_line_odds = []
 
@@ -125,10 +127,13 @@ def get_line_odds(soup_flavor):
             away_line_odd = clean_odds(book_line(soup_flavor, book, i, 0)).split()
             home_line_odd = clean_odds(book_line(soup_flavor, book, i, 1)).split()
             if len(away_line_odd) == 0:
+                # ----- If book does NOT have odds for the game
                 game_line_odds.extend([None, None])
             elif len(away_line_odd) == 1:
+                # ----- If there is no spread (e.g., money line)
                 game_line_odds.extend([float(away_line_odd[0]), float(home_line_odd[0])])
             else:
+                # ----- If there is a spread then len(away_line_odd) == 2
                 game_line_odds.extend([float(away_line_odd[1]), float(home_line_odd[1])])
 
         list_line_odds.append(game_line_odds)
@@ -142,6 +147,7 @@ def get_line_odds(soup_flavor):
 
 
 def add_lines(df_series):
+    """Calculate expected revenue for $100 bets from series of different odds"""
     return [item + 100 if item >= 0 else 100/(abs(item)/100) + 100 for item in df_series]
 
 
