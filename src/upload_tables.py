@@ -5,7 +5,7 @@ import pandas as pd
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----- Setup credentials
-with open('local/db_creds.prod', mode='rt') as f:
+with open('local/db_creds_rocky.prod', mode='rt') as f:
     db_creds = json.load(f)
 # ----- Setup connection
 db = sqlalchemy.create_engine('{dialect}://{user}:{password}@{host}:{port}/{dbname}'.format(**db_creds))
@@ -142,21 +142,3 @@ for sport in sports:
         conn.execute(insert_stmt, value)
     except sqlalchemy.exc.IntegrityError:
         'nothing'
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----- Test the code
-query = """
-    SELECT *
-    FROM mlb_538
-    """
-a = pd.read_sql(query, db)
-a
-
-# ----------------------------------------------------------------------------------------------------------------------
-# ----- Test the code
-query = """
-    SELECT *
-    FROM bet_outcomes
-    """
-b = pd.read_sql(query, db)
-print(b.tail())
