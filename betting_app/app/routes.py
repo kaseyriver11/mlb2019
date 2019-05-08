@@ -36,30 +36,38 @@ def make_games():
     return games
 
 
-query = """
-    SELECT away, home, bet_on, odds_bet, chance_to_win, to_win, expected_winnings
-    FROM placed_bets as pb
-    INNER JOIN games as g
-    on g.id = pb.id
-    WHERE g.date = %(date)s
-    """
-today = dt.date.today()
-bets = read_sql(query, db.engine, params={'date': today})
-bets.columns = ['Away', 'Home', 'Bet On:', 'Odds', 'Win Percentage', 'To Win', 'Expected Winnings']
+def make_bets():
+    today = dt.date.today()
+    query = """
+        SELECT away, home, bet_on, odds_bet, chance_to_win, to_win, expected_winnings
+        FROM placed_bets as pb
+        INNER JOIN games as g
+        on g.id = pb.id
+        WHERE g.date = %(date)s
+        """
+    bets = read_sql(query, db.engine, params={'date': today})
+    bets.columns = ['Away', 'Home', 'Bet On:', 'Odds', 'Win Percentage', 'To Win', 'Expected Winnings']
+
+    return bets
 
 
-query = """
-    SELECT g.away, g.home, bet_on, amount_won, net_gain
-    FROM bet_outcomes as bo
-    INNER JOIN games as g
-        on g.id = bo.id
-    INNER JOIN placed_bets as pb
-        on pb.id = bo.id
-    WHERE g.date = %(date)s
-    """
-yesterday = dt.date.today() - dt.timedelta(days=1)
-outcomes = read_sql(query, db.engine, params={'date': yesterday})
-outcomes.columns = ['Away', 'Home', 'Bet On', 'Amount Won', 'Net Gain']
+def make_outcomes():
+    yesterday = dt.date.today() - dt.timedelta(days=1)
+
+    query = """
+        SELECT g.away, g.home, bet_on, amount_won, net_gain
+        FROM bet_outcomes as bo
+        INNER JOIN games as g
+            on g.id = bo.id
+        INNER JOIN placed_bets as pb
+            on pb.id = bo.id
+        WHERE g.date = %(date)s
+        """
+
+    outcomes = read_sql(query, db.engine, params={'date': yesterday})
+    outcomes.columns = ['Away', 'Home', 'Bet On', 'Amount Won', 'Net Gain']
+
+    return outcomes
 
 
 @application.route('/', methods=['GET'])
@@ -82,10 +90,10 @@ def todays_games():
 @application.route('/todays_bets', methods=['GET'])
 def todays_bets():
     return render_template('todays_bets.html',
-                           bets=[bets.to_html(classes='data', index=False)])
+                           bets=[make_bets().to_html(classes='data', index=False)])
 
 
 @application.route('/recent_outcomes', methods=['GET'])
 def recent_outcomes():
     return render_template('recent_outcomes.html',
-                           outcomes=[outcomes.to_html(classes='data', index=False)])
+                           outcomes=[make_outcomes().to_html(classes='data', index=False)])
