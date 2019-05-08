@@ -1,4 +1,4 @@
 PATH=/usr/bin/
-0 5 * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/todays_mlb_games.py" >/tmp/stdout.log 2>/tmp/stderr.log
-5 5 * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/completed_mlb_games.py" >/tmp/stdout2.log 2>/tmp/stderr2.log
+3 5 * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/todays_mlb_games.py" >/tmp/stdout.log 2>/tmp/stderr.log
+6 5 * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/completed_mlb_games.py" >/tmp/stdout2.log 2>/tmp/stderr2.log
 */10 5 * * * cd /home/ubuntu/mlb2019 && sudo docker-compose run mlb2019 bash -c "python3.6 src/todays_mlb_odds.py" >/tmp/stdout3.log 2>/tmp/stderr3.log
