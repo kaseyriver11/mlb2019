@@ -19,7 +19,13 @@ def make_dashboard():
     return_on_investment = str(round((outcomes.amount_bet.sum() + outcomes.net_gain.sum()) /
                                      outcomes.amount_bet.sum(), 4) * 100) + "%"
 
-    return bets, net, total_bet, return_on_investment
+    o1 = outcomes[outcomes['odds_bet'] > 0]
+    o2 = outcomes[outcomes['odds_bet'] < 0]
+
+    underdog = '$' + str(round(o1.net_gain.sum(), 2))
+    favorite = '$' + str(round(o2.net_gain.sum(), 2))
+
+    return bets, net, total_bet, return_on_investment, underdog, favorite
 
 
 def make_games():
@@ -78,7 +84,9 @@ def index():
                            bets=values[0],
                            net=values[1],
                            total_bet=values[2],
-                           roi=values[3])
+                           roi=values[3],
+                           underdog=values[4],
+                           favorite=values[5])
 
 
 @application.route('/todays_games', methods=['GET'])
