@@ -13,7 +13,7 @@ services:
       - ./:/code
     working_dir: /code/
     ports:
-      - "0.0.0.0:1111:8888"
+      - "8888:8888"
     expose:
       - "8888"
     command:
