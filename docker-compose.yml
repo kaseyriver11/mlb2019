@@ -7,3 +7,14 @@ services:
       - ./:/code
     working_dir: /code
     tty: true
+  notebook:
+    build: ./docker
+    volumes:
+      - ./:/code
+    working_dir: /code/
+    ports:
+      - "0.0.0.0:1111:8888"
+    expose:
+      - "8888"
+    command:
+      jupyter notebook --allow-root
