@@ -4,4 +4,4 @@ c.NotebookApp.ip = '0.0.0.0'
 c.NotebookApp.open_browser = False  # do not open a browser window by default when using notebooks
 c.NotebookApp.token = '' # No token. Always use jupyter over ssh tunnel
 c.NotebookApp.notebook_dir = ''
-c.NotebookApp.custom_display_url = 'http://localhost:1111' 
+c.NotebookApp.custom_display_url = 'http://67.205.165.188:1111/' 
