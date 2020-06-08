@@ -1,0 +1,31 @@
+,id,abbreviation,city,full_name,short_name
+0,0,ARI,Arizona,Diamondbacks,D-backs
+1,1,ATL,Atlanta,Braves,Braves
+2,2,BAL,Baltimore,Orioles,Orioles
+3,3,BOS,Boston,Red Sox,Red Sox
+4,4,CHC,Chicago,Cubs,Cubs
+5,5,CHW,Chicago,White Sox,White Sox
+6,6,CIN,Cincinnati,Reds,Reds
+7,7,CLE,Cleveland,Indians,Indians
+8,8,COL,Colorado,Rockies,Rockies
+9,9,DET,Detriot,Tigers,Tigers
+10,10,HOU,Houston,Astros,Astros
+11,11,KC,Kansas City,Royals,Royals
+12,12,LAA,Los Angeles,Angels,Angels
+13,13,LAD,Los Angeles,Dodgers,Dodgers
+14,14,MIA,Miami,Marlins,Marlins
+15,15,MIL,Milwaukee,Brewers,Brewers
+16,16,MIN,Minnesota,Twins,Twins
+17,17,NYM,New York,Mets,Mets
+18,18,NYY,New York,Yankees,Yankees
+19,19,OAK,Oakland,Athletics,Athletics
+20,20,PHI,Philadelphia,Phillies,Phillies
+21,21,PIT,Pittsburgh,Pirates,Pirates
+22,22,SD,San Diego,Padres,Padres
+23,23,SEA,Seatle,Mariners,Mariners
+24,24,SF,San Francisco,Giants,Giants
+25,25,STL,St. Louis,Cardinals,Cardinals
+26,26,TB,Tampa Bay,Rays,Rays
+27,27,TEX,Texas,Rangers,Rangers
+28,28,TOR,Toronto,Blue Jays,Blue Jays
+29,29,WSH,Washington,Nationals,Nationals

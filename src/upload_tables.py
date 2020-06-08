@@ -142,3 +142,55 @@ for sport in sports:
         conn.execute(insert_stmt, value)
     except sqlalchemy.exc.IntegrityError:
         'nothing'
+
+
+# Save all tables before we close projection:
+
+# Team Names
+query = """ SELECT * 
+FROM team_names
+"""
+team_names = pd.read_sql(query, db)
+team_names.to_csv("final_data/team_names.csv")
+
+# Games
+query = """ SELECT * 
+FROM games
+"""
+games = pd.read_sql(query, db)
+games.to_csv("final_data/games.csv")
+
+# game outcomes
+query = """ SELECT * 
+FROM game_outcomes
+"""
+game_outcomes = pd.read_sql(query, db)
+game_outcomes.to_csv("final_data/game_outcomes.csv")
+
+# mlb_538
+query = """ SELECT * 
+FROM mlb_538
+"""
+mlb_538 = pd.read_sql(query, db)
+mlb_538.to_csv("final_data/mlb_538.csv")
+
+# Placed Bets
+query = """ SELECT * 
+FROM placed_bets
+"""
+placed_bets = pd.read_sql(query, db)
+placed_bets.to_csv("final_data/placed_bets.csv")
+
+# Bet Outcomes
+query = """ SELECT * 
+FROM bet_outcomes
+"""
+bet_outcomes = pd.read_sql(query, db)
+bet_outcomes.to_csv("final_data/bet_outcomes.csv")
+
+# sport_ids
+query = """ SELECT * 
+FROM sport_ids
+"""
+sport_ids = pd.read_sql(query, db)
+sport_ids.to_csv("final_data/sport_ids.csv")

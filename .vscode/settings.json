@@ -1,0 +1,10 @@
+{
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "python.formatting.blackArgs": ["--line-length=120"],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Args": ["--ignore=E125,E128,E501,E402,E203", "--verbose", "--max-line-length=120"],
+    "terminal.integrated.inheritEnv": true
+}
